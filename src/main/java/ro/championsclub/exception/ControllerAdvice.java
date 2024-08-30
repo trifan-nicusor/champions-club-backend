@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,7 +16,6 @@ import ro.championsclub.dto.ValidationDto;
 import java.util.List;
 
 @Hidden
-@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class ControllerAdvice {
