@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import ro.championsclub.exception.TechnicalException;
 
-
 @Service
 @RequiredArgsConstructor
 public class EmailService {
