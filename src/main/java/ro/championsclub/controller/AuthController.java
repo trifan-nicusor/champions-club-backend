@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,7 +13,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ro.championsclub.dto.ErrorDto;
 import ro.championsclub.dto.ValidationDto;
+import ro.championsclub.dto.request.EmailRequest;
+import ro.championsclub.dto.request.LoginRequest;
 import ro.championsclub.dto.request.RegisterRequest;
+import ro.championsclub.dto.request.ResetPasswordRequest;
+import ro.championsclub.dto.response.LoginResponse;
 import ro.championsclub.service.AuthService;
 
 @RestController
@@ -42,15 +47,9 @@ public class AuthController {
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
-    public void register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
+    public void register(@Valid @RequestBody RegisterRequest request) {
         service.register(request);
     }
-
-
-  /*
-
 
     @ApiResponses({
             @ApiResponse(responseCode = "200"),
@@ -61,9 +60,7 @@ public class AuthController {
             )
     })
     @GetMapping("/confirm-account")
-    public void confirmAccount(
-            @RequestParam("confirmationToken") String token
-    ) {
+    public void confirmAccount(@RequestParam String token) {
         service.confirmAccount(token);
     }
 
@@ -93,7 +90,6 @@ public class AuthController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Successfully logged in",
                     content = @Content(schema = @Schema(implementation = LoginResponse.class))
             ),
             @ApiResponse(
@@ -103,9 +99,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    public LoginResponse login(
-            @Valid @RequestBody LoginRequest request
-    ) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return service.login(request);
     }
 
@@ -127,10 +121,8 @@ public class AuthController {
 
     @ApiResponse(responseCode = "200")
     @PostMapping("/forgot-password")
-    public void forgotPassword(
-            @Valid @RequestBody EmailRequest request
-    ) {
-        service.sendPasswordResetEmail(request.getEmail());
+    public void forgotPassword(@Valid @RequestBody EmailRequest request) {
+        service.sendPasswordResetEmail(request);
     }
 
     @PatchMapping("/reset-password")
@@ -140,5 +132,5 @@ public class AuthController {
     ) {
         service.resetPassword(token, request);
     }
-*/
+
 }
