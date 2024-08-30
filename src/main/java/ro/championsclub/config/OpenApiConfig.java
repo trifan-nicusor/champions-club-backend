@@ -1,4 +1,4 @@
-package ro.championsclub.configs;
+package ro.championsclub.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
