@@ -1,18 +1,32 @@
 package ro.championsclub.service;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ro.championsclub.component.EmailBuilder;
+import ro.championsclub.dto.request.EmailRequest;
+import ro.championsclub.dto.request.LoginRequest;
 import ro.championsclub.dto.request.RegisterRequest;
+import ro.championsclub.dto.request.ResetPasswordRequest;
+import ro.championsclub.dto.response.LoginResponse;
 import ro.championsclub.entity.User;
 import ro.championsclub.entity.UuidToken;
+import ro.championsclub.exception.BusinessException;
 import ro.championsclub.exception.ResourceConflictException;
+import ro.championsclub.exception.TechnicalException;
 import ro.championsclub.repository.UserRepository;
 import ro.championsclub.repository.UuidTokenRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,6 +40,7 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final EmailService emailService;
     private final EmailBuilder emailBuilder;
+    private final AuthenticationManager authenticationManager;
 
     @Value("${host.port}")
     private String hostAndPort;
@@ -41,7 +56,7 @@ public class AuthService {
         }
 
         var user = User.builder()
-                .firstName("3333333333333333333333333333333333333333333333333333333333333333333")
+                .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -71,35 +86,6 @@ public class AuthService {
         emailService.send(user.getEmail(), email);
     }
 
-    /*private final JwtTokenRepository jwtTokenRepository;
-    private final UuidTokenRepository uuidTokenRepository;
-    private final JwtService jwtService;
-    private final EmailService emailService;
-    private final EmailBuilder emailBuilder;
-    private final AuthenticationManager authenticationManager;
-
-    public void register(RegisterRequest request) {
-        String email = request.getEmail();
-
-        if (userRepository.existsByEmail(email)) {
-            throw new ResourceConflictException("An account with this email already exists");
-        }
-
-        var user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(email)
-                .password(passwordEncoder.encode(request.getPassword()))
-                .build();
-
-        userRepository.save(user);
-
-        var jwtToken = jwtService.generateToken(user);
-
-        saveJwtToken(user, jwtToken);
-        sendConfirmationEmail(user);
-    }
-
     @Transactional
     public void confirmAccount(String token) {
         var uuidToken = uuidTokenRepository.getByToken(token);
@@ -127,17 +113,13 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         User user;
+        var email = request.getEmail();
 
         try {
-            user = userRepository.getByEmail(request.getEmail());
+            user = userRepository.getByEmail(email);
 
             if (!user.isEnabled()) {
-                var emailRequest = new EmailRequest(user.getEmail());
-
-                resendConfirmationEmail(emailRequest);
-
-                throw new BusinessException("Account must be confirmed before login, " +
-                        "new confirmation sent");
+                throw new BusinessException("Account must be enabled before login");
             }
 
             authenticationManager.authenticate(
@@ -150,35 +132,33 @@ public class AuthService {
             throw new BusinessException("Invalid email or password");
         }
 
-        String token = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        var accessToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
 
-        revokeAllUserJwtTokens(user);
-        saveJwtToken(user, token);
+        jwtTokenService.revokeAllUserJwtTokens(user);
+        jwtTokenService.saveJwtToken(user, accessToken);
 
-        return new LoginResponse(token, refreshToken);
+        return new LoginResponse(accessToken, refreshToken);
     }
 
     public LoginResponse refreshToken(HttpServletRequest request) {
-
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String refreshToken;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new TechnicalException("Failed to get authorization header");
         }
 
-        refreshToken = authHeader.substring(7);
-        String userEmail = jwtService.extractUsername(refreshToken);
+        var refreshToken = authHeader.substring(7);
+        var email = jwtService.extractUsername(refreshToken);
 
-        if (userEmail != null) {
-            var user = userRepository.getByEmail(userEmail);
+        if (email != null) {
+            var user = userRepository.getByEmail(email);
 
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
 
-                revokeAllUserJwtTokens(user);
-                saveJwtToken(user, accessToken);
+                jwtTokenService.revokeAllUserJwtTokens(user);
+                jwtTokenService.saveJwtToken(user, accessToken);
 
                 return new LoginResponse(accessToken, refreshToken);
             }
@@ -187,37 +167,36 @@ public class AuthService {
         throw new TechnicalException("Failed to extract user details from header");
     }
 
-    public void sendPasswordResetEmail(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-
-        if (user.isEmpty()) return;
-
-        final String token = UUID.randomUUID().toString();
-        final String link = "http://localhost:4400/reset-password?resetToken=" + token;
+    public void sendPasswordResetEmail(EmailRequest request) {
+        var email = request.getEmail();
+        var user = userRepository.getByEmail(email);
+        var token = UUID.randomUUID().toString();
+        var link = "http://localhost:4400/reset-password?resetToken=" + token;
 
         var resetToken = UuidToken.builder()
                 .token(token)
                 .expiresAt(LocalDateTime.now().plusMinutes(expireTime))
-                .user(user.get())
+                .user(user)
                 .build();
 
         uuidTokenRepository.save(resetToken);
 
-        String name = user.get().getFirstName();
+        var name = user.getFirstName();
+        var builtEmail = emailBuilder.forgotPasswordEmail(name, link);
 
-        emailService.send(email, emailBuilder.forgotPasswordEmail(name, link));
+        emailService.send(email, builtEmail);
     }
 
     @Transactional
     public void resetPassword(String token, ResetPasswordRequest request) {
-        UuidToken uuidToken = uuidTokenRepository.getByToken(token);
+        var uuidToken = uuidTokenRepository.getByToken(token);
 
         uuidTokenRepository.delete(uuidToken);
 
-        String email = uuidToken.getUser().getEmail();
-        String password = passwordEncoder.encode(request.getPassword());
+        var email = uuidToken.getUser().getEmail();
+        var password = passwordEncoder.encode(request.getPassword());
 
         userRepository.changePassword(email, password);
     }
-    }*/
+
 }
