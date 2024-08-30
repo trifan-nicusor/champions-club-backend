@@ -10,7 +10,7 @@
     </parent>
     <groupId>ro.championsclub</groupId>
     <artifactId>champions-club</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>champions-club-backend</name>
     <description>champions-club-backend</description>
     <url/>
