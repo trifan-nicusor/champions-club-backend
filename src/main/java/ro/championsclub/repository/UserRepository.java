@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u " +
             "FROM User u " +
-            "WHERE u.email = :email AND u.confirmedAt = null")
+            "WHERE u.email = :email AND u.confirmedAt IS NULL")
     Optional<User> findUnconfirmedUser(String email);
 
     @Transactional
