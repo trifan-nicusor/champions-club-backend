@@ -81,9 +81,7 @@ public class AuthController {
             )
     })
     @PostMapping("/resend-confirmation-email")
-    public void resendConfirmationEmail(
-            @Valid @RequestBody EmailRequest request
-    ) {
+    public void resendConfirmationEmail(@Valid @RequestBody EmailRequest request) {
         service.resendConfirmationEmail(request);
     }
 
@@ -109,7 +107,7 @@ public class AuthController {
                     content = @Content(schema = @Schema(implementation = LoginResponse.class))
             ),
             @ApiResponse(
-                    responseCode = "404",
+                    responseCode = "400",
                     description = "User could not be extracted from JWT",
                     content = @Content(schema = @Schema(implementation = ErrorDto.class))
             )
@@ -119,16 +117,31 @@ public class AuthController {
         return service.refreshToken(request);
     }
 
-    @ApiResponse(responseCode = "200")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No user with this email found",
+                    content = @Content(schema = @Schema(implementation = ErrorDto.class))
+            )
+    })
     @PostMapping("/forgot-password")
     public void forgotPassword(@Valid @RequestBody EmailRequest request) {
         service.sendPasswordResetEmail(request);
     }
 
+    @ApiResponses({
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No valid token found",
+                    content = @Content(schema = @Schema(implementation = ErrorDto.class))
+            )
+    })
     @PatchMapping("/reset-password")
     public void resetPassword(
             @RequestParam String token,
-            @RequestBody ResetPasswordRequest request
+            @Valid @RequestBody ResetPasswordRequest request
     ) {
         service.resetPassword(token, request);
     }
