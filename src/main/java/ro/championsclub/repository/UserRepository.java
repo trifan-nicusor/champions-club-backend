@@ -15,6 +15,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmailAndIsEnabledTrueAndIsLockedFalse(String email);
 
+    @Query("SELECT u " +
+            "FROM User u " +
+            "WHERE u.email = :email AND u.confirmedAt = null")
+    Optional<User> findUnconfirmedUser(String email);
+
     @Transactional
     @Modifying
     @Query("UPDATE User " +
@@ -31,6 +36,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     default User getByEmail(String email) {
         return findByEmailAndIsEnabledTrueAndIsLockedFalse(email)
+                .orElseThrow(() -> new EntityNotFoundException("No user with this email found"));
+    }
+
+    default User getUnconfirmedUser(String email) {
+        return findUnconfirmedUser(email)
                 .orElseThrow(() -> new EntityNotFoundException("No user with this email found"));
     }
 
