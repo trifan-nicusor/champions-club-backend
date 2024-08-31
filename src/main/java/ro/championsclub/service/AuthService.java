@@ -70,22 +70,6 @@ public class AuthService {
         sendConfirmationEmail(user);
     }
 
-    private void sendConfirmationEmail(User user) {
-        var token = UUID.randomUUID().toString();
-        var link = hostAndPort + "/api/v1/auth/confirm-account?confirmationToken=" + token;
-
-        var uuidToken = UuidToken.builder()
-                .token(token)
-                .expiresAt(LocalDateTime.now().plusMinutes(expireTime))
-                .user(user)
-                .build();
-
-        uuidTokenRepository.save(uuidToken);
-
-        String email = emailBuilder.confirmationEmail(user.getFirstName(), link);
-        emailService.send(user.getEmail(), email);
-    }
-
     @Transactional
     public void confirmAccount(String token) {
         var uuidToken = uuidTokenRepository.getByToken(token);
@@ -96,11 +80,7 @@ public class AuthService {
     }
 
     public void resendConfirmationEmail(EmailRequest request) {
-        var user = userRepository.getByEmail(request.getEmail());
-
-        if (user.getConfirmedAt() != null) {
-            throw new BusinessException("User already confirmed");
-        }
+        var user = userRepository.getUnconfirmedUser(request.getEmail());
 
         List<UuidToken> tokens = uuidTokenRepository.findAllByUser(user);
 
@@ -197,6 +177,22 @@ public class AuthService {
         var password = passwordEncoder.encode(request.getPassword());
 
         userRepository.changePassword(email, password);
+    }
+
+    private void sendConfirmationEmail(User user) {
+        var token = UUID.randomUUID().toString();
+        var link = hostAndPort + "/api/v1/auth/confirm-account?token=" + token;
+
+        var uuidToken = UuidToken.builder()
+                .token(token)
+                .expiresAt(LocalDateTime.now().plusMinutes(expireTime))
+                .user(user)
+                .build();
+
+        uuidTokenRepository.save(uuidToken);
+
+        var email = emailBuilder.confirmationEmail(user.getFirstName(), link);
+        emailService.send(user.getEmail(), email);
     }
 
 }
