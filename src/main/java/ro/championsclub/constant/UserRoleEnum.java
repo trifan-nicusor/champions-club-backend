@@ -7,6 +7,10 @@ public enum UserRoleEnum {
     UNDEFINED;
 
     public static UserRoleEnum getType(String type) {
+        if (type == null) {
+            return UserRoleEnum.UNDEFINED;
+        }
+
         try {
             return UserRoleEnum.valueOf(type.toUpperCase());
         } catch (IllegalArgumentException e) {
