@@ -29,7 +29,7 @@ public class ConstraintValidatorTest {
 
     @Test
     public void buildErrorsTest() {
-        var fieldError = new FieldError("objectName", "fieldName", "must not be blank");
+        var fieldError = new FieldError("name", "field", "must not be blank");
         when(mockBindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
 
         List<ValidationDto> result = constraintValidator.buildErrors(mockBindingResult);
@@ -38,7 +38,7 @@ public class ConstraintValidatorTest {
 
         ValidationDto validationDto = result.getFirst();
 
-        assertThat("fieldName").isEqualTo(validationDto.field());
+        assertThat("field").isEqualTo(validationDto.field());
         assertThat("must not be blank").isEqualTo(validationDto.error());
         assertThat(validationDto.timestamp()).isNotNull();
     }
