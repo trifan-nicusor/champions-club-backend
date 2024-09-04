@@ -3,6 +3,7 @@ package ro.championsclub.repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import ro.championsclub.entity.User;
 import ro.championsclub.entity.UuidToken;
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class UuidTokenRepositoryTest {
 
     @Autowired
@@ -59,13 +61,6 @@ class UuidTokenRepositoryTest {
     }
 
     @Test
-    void findAllByUserTest() {
-        List<UuidToken> tokens = uuidTokenRepository.findAllByUser(user);
-
-        assertThat(tokens.size()).isEqualTo(1);
-    }
-
-    @Test
     void findByTokenTest() {
         Optional<UuidToken> uuidToken = uuidTokenRepository.findByToken(validUuidToken.getToken());
 
@@ -73,7 +68,14 @@ class UuidTokenRepositoryTest {
     }
 
     @Test
-    void getByTokeTest() {
+    void findAllByUserTest() {
+        List<UuidToken> tokens = uuidTokenRepository.findAllByUser(user);
+
+        assertThat(tokens.size()).isEqualTo(1);
+    }
+
+    @Test
+    void getByTokenTest() {
         Throwable thrown = catchThrowable(() -> uuidTokenRepository.getByToken(invavalidUuidToken.getToken()));
 
         assertThat(thrown)
