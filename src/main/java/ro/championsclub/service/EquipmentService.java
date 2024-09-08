@@ -31,7 +31,7 @@ public class EquipmentService {
     public void saveEquipment(EquipmentRequest request, MultipartFile file) {
         String name = request.getName();
 
-        if (equipmentRepository.existsByName(name)) {
+        if (equipmentRepository.existsByNameAndIsActiveTrue(name)) {
             throw new ResourceConflictException("Equipment with name: " + name + " already exists");
         }
 
