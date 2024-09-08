@@ -67,7 +67,7 @@ class EquipmentRepositoryTest {
 
     @Test
     void existsByNameTest() {
-        boolean exists = equipmentRepository.existsByName(equipment1.getName());
+        boolean exists = equipmentRepository.existsByNameAndIsActiveTrue(equipment1.getName());
 
         assertThat(exists).isTrue();
     }
