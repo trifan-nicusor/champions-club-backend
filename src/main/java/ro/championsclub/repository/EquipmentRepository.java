@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Integer> {
 
-    boolean existsByName(String name);
+    boolean existsByNameAndIsActiveTrue(String name);
 
     Optional<Equipment> findByIdAndIsActiveTrue(int id);
 
