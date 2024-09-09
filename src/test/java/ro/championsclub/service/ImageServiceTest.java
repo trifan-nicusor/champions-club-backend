@@ -2,158 +2,120 @@ package ro.championsclub.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ro.championsclub.entity.Image;
 import ro.championsclub.exception.ResourceConflictException;
 import ro.championsclub.exception.TechnicalException;
 import ro.championsclub.repository.ImageRepository;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Transactional
 @SpringBootTest
-public class ImageServiceTest {
+class ImageServiceTest {
 
-    @Mock
-    private ImageRepository imageRepository;
-
-    @InjectMocks
+    @Autowired
     private ImageService imageService;
 
-    @Mock
+    @Autowired
+    private ImageRepository imageRepository;
+
     private MultipartFile multipartFile;
 
-    private byte[] validImageData;
-    private BufferedImage validBufferedImage;
-
-    @Value("${image.max-width}")
-    private int maxWidth;
-
-    @Value("${image.max-height}")
-    private int maxHeight;
-
-    @Value("${image.max-size}")
-    private long maxSize;
+    private final String imageNameValid = "images/184_elite_block-valid.jpg";
 
     @BeforeEach
-    public void setup() throws IOException {
-        imageRepository.deleteAll();
+    void setup() throws IOException {
+        Path path = Path.of("src/test/resources/images/184_elite_block-valid.jpg");
 
-        MockMultipartFile image = new MockMultipartFile(
-                "image",
-                "image.jpg",
-                MediaType.IMAGE_JPEG_VALUE,
-                new byte[]{1, 2, 3, 4}
+        byte[] content = Files.readAllBytes(path);
+
+        multipartFile = new MockMultipartFile("file", imageNameValid, "image/jpeg", content);
+    }
+
+    @Test
+    void saveImageSuccessTest() {
+        var image = imageService.saveImage(multipartFile);
+
+        assertThat(image).isNotNull();
+        assertThat(imageNameValid).isEqualTo(image.getName());
+        assertThat(imageRepository.existsById(image.getId())).isTrue();
+    }
+
+    @Test
+    void saveImageThrowsConflictExceptionTest() {
+        imageService.saveImage(multipartFile);
+
+        assertThatThrownBy(() -> imageService.saveImage(multipartFile))
+                .isInstanceOf(ResourceConflictException.class)
+                .hasMessageContaining("Image: " + imageNameValid + " already exists");
+    }
+
+    @Test
+    void saveImageExceedsMaxSizeTest() throws IOException {
+        File file = new File("src/test/resources/images/184_elite_block-exceeds-size.jpg");
+
+        byte[] content = Files.readAllBytes(file.toPath());
+
+        MultipartFile largeMultipartFile = new MockMultipartFile(
+                "file",
+                "images/184_elite_block-exceeds-size.jpg",
+                "image/jpeg",
+                content
         );
 
-        imageService.saveImage(image);
-        
-        // Initialize test data
-        validImageData = new byte[1024]; // Some dummy data
-        validBufferedImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB); // A valid image
-
-        when(multipartFile.getOriginalFilename()).thenReturn("test.jpg");
-        when(multipartFile.getContentType()).thenReturn("image/jpeg");
-        when(multipartFile.getSize()).thenReturn(1024L);
-        when(multipartFile.getBytes()).thenReturn(validImageData);
-        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream(validImageData));
-        when(ImageIO.read(any(ByteArrayInputStream.class))).thenReturn(validBufferedImage);
+        assertThatThrownBy(() -> imageService.saveImage(largeMultipartFile))
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("Image exceeded width, height or size");
     }
 
     @Test
-    public void saveImage_Success() {
+    void saveImageInvalidFormatTest() throws IOException {
+        File file = new File("src/test/resources/images/184_elite_block.png");
 
+        byte[] content = Files.readAllBytes(file.toPath());
 
-        when(imageRepository.existsByName("test.jpg")).thenReturn(false);
-
-        Image savedImage = Image.builder()
-                .name("test.jpg")
-                .data(validImageData)
-                .width(100)
-                .height(100)
-                .size(1024L)
-                .build();
-
-        when(imageRepository.save(any(Image.class))).thenReturn(savedImage);
-
-        Image result = imageService.saveImage(multipartFile);
-
-        assertNotNull(result);
-        assertEquals("test.jpg", result.getName());
-        assertEquals(100, result.getWidth());
-        assertEquals(100, result.getHeight());
-        assertEquals(1024L, result.getSize());
-
-        verify(imageRepository, times(1)).existsByName("test.jpg");
-        verify(imageRepository, times(1)).save(any(Image.class));
-    }
-
-    @Test
-    public void testSaveImage_AlreadyExists() {
-        when(imageRepository.existsByName("test.jpg")).thenReturn(true);
-
-        assertThrows(ResourceConflictException.class, () -> {
-            imageService.saveImage(multipartFile);
-        });
-
-        verify(imageRepository, times(1)).existsByName("test.jpg");
-        verify(imageRepository, times(0)).save(any(Image.class));
-    }
-
-    @Test
-    public void testSaveImage_InvalidFormat() {
-        when(multipartFile.getOriginalFilename()).thenReturn("test.png");
-
-        assertThrows(TechnicalException.class, () -> {
-            imageService.saveImage(multipartFile);
-        });
-
-        verify(imageRepository, times(0)).save(any(Image.class));
-    }
-
-    @Test
-    public void testSaveImage_ExceedsSizeOrDimensions() {
-        when(multipartFile.getSize()).thenReturn(maxSize + 1); // Simulating a file exceeding the max size
-
-        assertThrows(TechnicalException.class, () -> {
-            imageService.saveImage(multipartFile);
-        });
-
-        verify(imageRepository, times(0)).save(any(Image.class));
-    }
-
-    @Test
-    public void testUpdateImage_Success() throws IOException {
-        Image oldImage = Image.builder().name("oldImage.jpg").build();
-
-        when(imageRepository.existsByName("test.jpg")).thenReturn(false);
-        when(imageRepository.save(any(Image.class))).thenReturn(
-                Image.builder()
-                        .name("test.jpg")
-                        .data(validImageData)
-                        .width(100)
-                        .height(100)
-                        .size(1024L)
-                        .build()
+        MultipartFile pngMultipartFile = new MockMultipartFile(
+                "file",
+                "184_elite_block.png",
+                "image/png",
+                content
         );
 
-        Image result = imageService.updateImage(multipartFile, oldImage);
-
-        assertNotNull(result);
-        assertEquals("test.jpg", result.getName());
-
-        verify(imageRepository, times(1)).delete(oldImage);
-        verify(imageRepository, times(1)).save(any(Image.class));
+        assertThatThrownBy(() -> imageService.saveImage(pngMultipartFile))
+                .isInstanceOf(TechnicalException.class)
+                .hasMessageContaining("Invalid file format");
     }
+
+    @Test
+    void updateImageSuccessTest() throws IOException {
+        var oldImage = imageService.saveImage(multipartFile);
+
+        Path path = Path.of("src/test/resources/images/184_elite_block-update.jpg");
+
+        byte[] content = Files.readAllBytes(path);
+
+        MultipartFile updatedMultipartFile = new MockMultipartFile(
+                "file",
+                "184_elite_block-update.jpg",
+                "image/jpeg",
+                content
+        );
+
+        var updatedImage = imageService.updateImage(updatedMultipartFile, oldImage);
+
+        assertThat(updatedImage).isNotNull();
+        assertThat("184_elite_block-update.jpg").isEqualTo(updatedImage.getName());
+        assertThat(imageRepository.existsById(oldImage.getId())).isFalse();
+    }
+
 }
