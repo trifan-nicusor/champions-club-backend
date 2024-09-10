@@ -25,8 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
@@ -46,7 +45,7 @@ class EquipmentServiceTest {
     private Image image1;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setup() throws IOException {
         equipmentRepository.deleteAll();
 
         // mock multipart file
@@ -91,7 +90,7 @@ class EquipmentServiceTest {
         equipmentService.saveEquipment(request, file);
 
         // success
-        assertThat(equipmentRepository.existsByNameAndIsActiveTrue("name")).isTrue();
+        assertThat(equipmentRepository.existsByName("name")).isTrue();
 
         // when throws ResourceConflictException
         assertThatThrownBy(() -> equipmentService.saveEquipment(request, file))
@@ -101,24 +100,31 @@ class EquipmentServiceTest {
     @Test
     @WithMockUser(authorities = "ADMIN")
     void disableEquipmentTest() {
+        var name = "test";
+
         var equipment = Equipment.builder()
-                .name("test")
+                .name(name)
                 .category(EquipmentCategoryEnum.CARDIO)
                 .image(image)
                 .build();
 
         equipmentRepository.save(equipment);
 
-        equipmentService.disableEquipment(equipment.getId());
+        equipmentService.disableEquipment(name);
 
-        assertThat(equipmentRepository.existsByNameAndIsActiveTrue(equipment.getName())).isFalse();
+        Throwable thrown = catchThrowable(() -> equipmentRepository.getByName(name));
+
+        assertThat(thrown).isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Equipment with name: " + name + " not found");
     }
 
     @Test
     @WithMockUser(authorities = "ADMIN")
     void updateEquipmentTest() {
+        var name = "test";
+
         var equipment = Equipment.builder()
-                .name("Old Equipment")
+                .name(name)
                 .category(EquipmentCategoryEnum.CARDIO)
                 .image(image)
                 .build();
@@ -128,7 +134,7 @@ class EquipmentServiceTest {
         var request = new EquipmentUpdateRequest();
         request.setName("Updated Equipment");
 
-        var equipmentAdminView = equipmentService.updateEquipment(equipment.getId(), null, request);
+        var equipmentAdminView = equipmentService.updateEquipment(name, null, request);
 
         assertThat(equipmentAdminView).isNotNull();
         assertThat(equipmentAdminView.getEquipmentName()).isEqualTo(request.getName());

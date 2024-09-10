@@ -17,7 +17,7 @@ public class ValidationDtoTest {
         ValidationDto validationDto = new ValidationDto(field, error);
 
         assertThat(field).isEqualTo(validationDto.field());
-        assertThat(error).isEqualTo(validationDto.error());
+        assertThat(error).isEqualTo(validationDto.message());
         assertThat(validationDto.timestamp()).isNotNull();
 
         LocalDateTime parsedTimestamp = LocalDateTime.parse(validationDto.timestamp(), TimestampPattern.FORMATTER);
@@ -33,7 +33,7 @@ public class ValidationDtoTest {
         ValidationDto validationDto = new ValidationDto(field, error, timestamp);
 
         assertThat(field).isEqualTo(validationDto.field());
-        assertThat(error).isEqualTo(validationDto.error());
+        assertThat(error).isEqualTo(validationDto.message());
         assertThat(timestamp).isEqualTo(validationDto.timestamp());
     }
 

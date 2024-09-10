@@ -39,7 +39,7 @@ public class ConstraintValidatorTest {
         ValidationDto validationDto = result.getFirst();
 
         assertThat("field").isEqualTo(validationDto.field());
-        assertThat("must not be blank").isEqualTo(validationDto.error());
+        assertThat("must not be blank").isEqualTo(validationDto.message());
         assertThat(validationDto.timestamp()).isNotNull();
     }
 

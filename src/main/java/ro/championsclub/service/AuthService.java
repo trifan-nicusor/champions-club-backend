@@ -93,7 +93,7 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         User user;
-        var email = request.getEmail();
+        String email = request.getEmail();
 
         try {
             user = userRepository.getByEmail(email);
@@ -112,8 +112,8 @@ public class AuthService {
             throw new BusinessException("Invalid email or password");
         }
 
-        var accessToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         jwtTokenService.revokeAllUserJwtTokens(user);
         jwtTokenService.saveJwtToken(user, accessToken);
@@ -128,14 +128,14 @@ public class AuthService {
             throw new TechnicalException("Failed to get authorization header");
         }
 
-        var refreshToken = authHeader.substring(7);
-        var email = jwtService.extractUsername(refreshToken);
+        String refreshToken = authHeader.substring(7);
+        String email = jwtService.extractUsername(refreshToken);
 
         if (email != null) {
             var user = userRepository.getByEmail(email);
 
             if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
+                String accessToken = jwtService.generateToken(user);
 
                 jwtTokenService.revokeAllUserJwtTokens(user);
                 jwtTokenService.saveJwtToken(user, accessToken);
@@ -148,7 +148,7 @@ public class AuthService {
     }
 
     public void sendPasswordResetEmail(EmailRequest request) {
-        var email = request.getEmail();
+        String email = request.getEmail();
         var user = userRepository.getByEmail(email);
         var token = UUID.randomUUID().toString();
         var link = "http://localhost:4400/reset-password?resetToken=" + token;
@@ -161,8 +161,8 @@ public class AuthService {
 
         uuidTokenRepository.save(resetToken);
 
-        var name = user.getFirstName();
-        var builtEmail = emailBuilder.forgotPasswordEmail(name, link);
+        String name = user.getFirstName();
+        String builtEmail = emailBuilder.forgotPasswordEmail(name, link);
 
         emailService.send(email, builtEmail);
     }
@@ -173,8 +173,8 @@ public class AuthService {
 
         uuidTokenRepository.delete(uuidToken);
 
-        var email = uuidToken.getUser().getEmail();
-        var password = passwordEncoder.encode(request.getPassword());
+        String email = uuidToken.getUser().getEmail();
+        String password = passwordEncoder.encode(request.getPassword());
 
         userRepository.changePassword(email, password);
     }
@@ -191,7 +191,7 @@ public class AuthService {
 
         uuidTokenRepository.save(uuidToken);
 
-        var email = emailBuilder.confirmationEmail(user.getFirstName(), link);
+        String email = emailBuilder.confirmationEmail(user.getFirstName(), link);
         emailService.send(user.getEmail(), email);
     }
 

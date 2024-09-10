@@ -85,7 +85,7 @@ class ControllerAdviceTest {
 
         assertEquals(1, response.size());
         assertEquals("field", response.getFirst().field());
-        assertEquals("error message", response.getFirst().error());
+        assertEquals("error message", response.getFirst().message());
         assertNotNull(response.getFirst().timestamp());
         verify(constraintValidator).buildErrors(bindingResult);
     }
@@ -104,7 +104,7 @@ class ControllerAdviceTest {
 
         assertEquals(1, response.size());
         assertEquals("field", response.getFirst().field());
-        assertEquals("error message", response.getFirst().error());
+        assertEquals("error message", response.getFirst().message());
         assertNotNull(response.getFirst().timestamp());
         verify(constraintValidator).buildErrors(violations);
     }

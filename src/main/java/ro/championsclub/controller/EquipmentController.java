@@ -63,9 +63,9 @@ public class EquipmentController {
     @Operation(summary = "[only for admins] disable equipment")
     @ApiResponse(responseCode = "204")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{id}")
-    public void disableEquipment(@PathVariable int id) {
-        service.disableEquipment(id);
+    @DeleteMapping("/{name}")
+    public void disableEquipment(@PathVariable String name) {
+        service.disableEquipment(name);
     }
 
     @Operation(summary = "[only for admins] update equipment")
@@ -83,45 +83,33 @@ public class EquipmentController {
             )
     })
     @PatchMapping(
-            path = "/{id}",
+            path = "/{name}",
             consumes = {
                     MediaType.MULTIPART_FORM_DATA_VALUE,
                     MediaType.APPLICATION_JSON_VALUE
             }
     )
     public EquipmentAdminView updateEquipment(
-            @PathVariable int id,
+            @PathVariable String name,
             @Nullable @RequestPart MultipartFile image,
             @Valid @RequestPart EquipmentUpdateRequest request
     ) {
-        return service.updateEquipment(id, image, request);
+        return service.updateEquipment(name, image, request);
     }
 
     @Operation(summary = "[only for admins] get all active equipments")
-    @ApiResponse(
-            responseCode = "200",
-            content = @Content(schema = @Schema(implementation = EquipmentAdminView.class))
-    )
     @GetMapping("/admin/active")
     public List<EquipmentAdminView> getAllActiveEquipments() {
         return service.getAllActiveEquipments();
     }
 
     @Operation(summary = "[only for admins] get all inactive equipments")
-    @ApiResponse(
-            responseCode = "200",
-            content = @Content(schema = @Schema(implementation = EquipmentAdminView.class))
-    )
     @GetMapping("/admin/inactive")
     public List<EquipmentAdminView> getAllInactiveEquipments() {
         return service.getAllInactiveEquipments();
     }
 
     @Operation(summary = "get all active equipments")
-    @ApiResponse(
-            responseCode = "200",
-            content = @Content(schema = @Schema(implementation = EquipmentView.class))
-    )
     @GetMapping
     public List<EquipmentView> getAllEquipments() {
         return service.getAllEquipments();
