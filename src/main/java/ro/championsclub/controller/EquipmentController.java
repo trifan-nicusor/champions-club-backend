@@ -98,30 +98,18 @@ public class EquipmentController {
     }
 
     @Operation(summary = "[only for admins] get all active equipments")
-    @ApiResponse(
-            responseCode = "200",
-            content = @Content(schema = @Schema(implementation = EquipmentAdminView.class))
-    )
     @GetMapping("/admin/active")
     public List<EquipmentAdminView> getAllActiveEquipments() {
         return service.getAllActiveEquipments();
     }
 
     @Operation(summary = "[only for admins] get all inactive equipments")
-    @ApiResponse(
-            responseCode = "200",
-            content = @Content(schema = @Schema(implementation = EquipmentAdminView.class))
-    )
     @GetMapping("/admin/inactive")
     public List<EquipmentAdminView> getAllInactiveEquipments() {
         return service.getAllInactiveEquipments();
     }
 
     @Operation(summary = "get all active equipments")
-    @ApiResponse(
-            responseCode = "200",
-            content = @Content(schema = @Schema(implementation = EquipmentView.class))
-    )
     @GetMapping
     public List<EquipmentView> getAllEquipments() {
         return service.getAllEquipments();
