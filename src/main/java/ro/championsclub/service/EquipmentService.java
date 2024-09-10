@@ -58,10 +58,8 @@ public class EquipmentService {
             MultipartFile file,
             EquipmentUpdateRequest request
     ) {
-        String requestName = request.getName();
-
-        if (equipmentRepository.existsByName(requestName)) {
-            throw new ResourceConflictException("Equipment with name: " + requestName + " already exists");
+        if (name.equals(request.getName())) {
+            throw new ResourceConflictException("Equipment with name: " + name + " already exists");
         }
 
         var equipment = equipmentRepository.getByName(name);
