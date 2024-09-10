@@ -4,6 +4,8 @@ import org.modelmapper.Conditions;
 import org.modelmapper.convention.MatchingStrategies;
 import ro.championsclub.mapper.map.EquipmentAdminMap;
 import ro.championsclub.mapper.map.EquipmentMap;
+import ro.championsclub.mapper.map.SubscriptionAdminMap;
+import ro.championsclub.mapper.map.SubscriptionMap;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,6 +26,8 @@ public class ModelMapper {
 
         modelMapper.addMappings(new EquipmentAdminMap());
         modelMapper.addMappings(new EquipmentMap());
+        modelMapper.addMappings(new SubscriptionMap());
+        modelMapper.addMappings(new SubscriptionAdminMap());
     }
 
     private ModelMapper() {
