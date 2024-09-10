@@ -103,6 +103,12 @@ public class User implements UserDetails {
     )
     private List<UuidToken> uuidTokens;
 
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL
+    )
+    private Wishlist wishlist;
+
     // UserDetails interface method override
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
