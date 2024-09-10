@@ -31,7 +31,7 @@ public class EquipmentService {
     public void saveEquipment(EquipmentRequest request, MultipartFile file) {
         String name = request.getName();
 
-        if (equipmentRepository.existsByNameAndIsActiveTrue(name)) {
+        if (equipmentRepository.existsByName(name)) {
             throw new ResourceConflictException("Equipment with name: " + name + " already exists");
         }
 
@@ -47,26 +47,28 @@ public class EquipmentService {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void disableEquipment(int id) {
-        equipmentRepository.deleteById(id);
+    public void disableEquipment(String name) {
+        equipmentRepository.disable(name);
     }
 
     @Transactional
     @PreAuthorize("hasAuthority('ADMIN')")
     public EquipmentAdminView updateEquipment(
-            int id,
+            String name,
             MultipartFile file,
             EquipmentUpdateRequest request
     ) {
-        var equipment = equipmentRepository.getById(id);
+        String requestName = request.getName();
 
-        if (equipment.getName().equals(request.getName())) {
-            throw new ResourceConflictException("Equipment with name: " + request.getName() + " already exists");
+        if (equipmentRepository.existsByName(requestName)) {
+            throw new ResourceConflictException("Equipment with name: " + requestName + " already exists");
         }
+
+        var equipment = equipmentRepository.getByName(name);
 
         if (file != null && !file.isEmpty()) {
             if (equipment.getImage().getName().equals(file.getOriginalFilename())) {
-                throw new ResourceConflictException("Image with name: " + request.getName() + " already exists");
+                throw new ResourceConflictException("Image with name: " + file.getOriginalFilename() + " already exists");
             }
 
             var image = imageService.updateImage(file, equipment.getImage());
@@ -76,7 +78,7 @@ public class EquipmentService {
 
         map(request, equipment);
 
-        equipment = equipmentRepository.save(equipment);
+        equipmentRepository.save(equipment);
 
         return map(equipment, EquipmentAdminView.class);
     }
@@ -100,6 +102,5 @@ public class EquipmentService {
 
         return mapAll(equipments, EquipmentAdminView.class);
     }
-
 
 }

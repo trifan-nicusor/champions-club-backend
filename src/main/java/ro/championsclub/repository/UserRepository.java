@@ -35,13 +35,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     void changePassword(String email, String password);
 
     default User getByEmail(String email) {
-        return findByEmailAndIsEnabledTrueAndIsLockedFalse(email)
-                .orElseThrow(() -> new EntityNotFoundException("No user with this email found"));
+        return findByEmailAndIsEnabledTrueAndIsLockedFalse(email).orElseThrow(
+                () -> new EntityNotFoundException("No user with this email found"));
     }
 
     default User getUnconfirmedUser(String email) {
-        return findUnconfirmedUser(email)
-                .orElseThrow(() -> new EntityNotFoundException("No user with this email found"));
+        return findUnconfirmedUser(email).orElseThrow(
+                () -> new EntityNotFoundException("No user with this email found"));
     }
 
 }

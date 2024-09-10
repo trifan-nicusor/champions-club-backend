@@ -6,6 +6,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import ro.championsclub.constant.EquipmentCategoryEnum;
 
 import java.util.Set;
 
@@ -25,6 +26,7 @@ class EquipmentUpdateRequestTest {
     public void validNameTest() {
         var request = new EquipmentUpdateRequest();
         request.setName("name");
+        request.setCategory(EquipmentCategoryEnum.UNDEFINED);
 
         Set<ConstraintViolation<EquipmentUpdateRequest>> violations = validator.validate(request);
 
@@ -36,6 +38,7 @@ class EquipmentUpdateRequestTest {
     public void exceedsMaxNameTest() {
         var request = new EquipmentUpdateRequest();
         request.setName("a".repeat(33));
+        request.setCategory(EquipmentCategoryEnum.UNDEFINED);
 
         Set<ConstraintViolation<EquipmentUpdateRequest>> violations = validator.validate(request);
 

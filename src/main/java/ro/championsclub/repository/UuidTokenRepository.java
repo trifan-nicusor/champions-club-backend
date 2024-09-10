@@ -15,8 +15,8 @@ public interface UuidTokenRepository extends JpaRepository<UuidToken, Long> {
     List<UuidToken> findAllByUser(User user);
 
     default UuidToken getByToken(String token) {
-        return findByToken(token)
-                .orElseThrow(() -> new EntityNotFoundException("No valid token found"));
+        return findByToken(token).orElseThrow(
+                () -> new EntityNotFoundException("No valid token found"));
     }
 
 }

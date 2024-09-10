@@ -67,16 +67,16 @@ class EquipmentRepositoryTest {
 
     @Test
     void existsByNameTest() {
-        boolean exists = equipmentRepository.existsByNameAndIsActiveTrue(equipment1.getName());
+        boolean exists = equipmentRepository.existsByName(equipment1.getName());
 
         assertThat(exists).isTrue();
     }
 
     @Test
     void findByIdAndIsActiveTrueTest() {
-        int id = equipment1.getId();
+        var name = equipment1.getName();
 
-        Optional<Equipment> equipment = equipmentRepository.findByIdAndIsActiveTrue(id);
+        Optional<Equipment> equipment = equipmentRepository.findByNameAndIsActiveTrue(name);
 
         assertThat(equipment).isPresent();
     }
@@ -99,12 +99,12 @@ class EquipmentRepositoryTest {
 
     @Test
     void getByIdTest() {
-        int id = equipment2.getId();
+        var name = equipment2.getName();
 
-        Throwable thrown = catchThrowable(() -> equipmentRepository.getById(id));
+        Throwable thrown = catchThrowable(() -> equipmentRepository.getByName(name));
 
         assertThat(thrown).isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Equipment with id: " + id + " not found");
+                .hasMessageContaining("Equipment with name: " + name + " not found");
     }
 
 }
