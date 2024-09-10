@@ -59,4 +59,7 @@ public class Image {
     @OneToOne(mappedBy = "image")
     private Equipment equipment;
 
+    @OneToOne(mappedBy = "image")
+    private Subscription subscription;
+
 }
