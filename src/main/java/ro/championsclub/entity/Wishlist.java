@@ -32,7 +32,7 @@ public class Wishlist {
     private User user;
 
     @Builder.Default
-    @SQLRestriction("is_active <> 'false'")
+    @SQLRestriction("is_active <> false")
     @ManyToMany(
             fetch = FetchType.EAGER,
             cascade = {
