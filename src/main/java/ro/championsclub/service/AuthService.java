@@ -1,6 +1,5 @@
 package ro.championsclub.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,35 +79,36 @@ public class AuthService {
     }
 
     public void resendConfirmationEmail(EmailRequest request) {
-        var user = userRepository.getUnconfirmedUser(request.getEmail());
+        var user = userRepository.findUnconfirmedUser(request.getEmail());
 
-        List<UuidToken> tokens = uuidTokenRepository.findAllByUser(user);
+        if (user.isEmpty()) return;
+
+        List<UuidToken> tokens = uuidTokenRepository.findAllByUser(user.get());
 
         if (!tokens.isEmpty()) {
             throw new BusinessException("Email already sent");
         }
 
-        sendConfirmationEmail(user);
+        sendConfirmationEmail(user.get());
     }
 
     public LoginResponse login(LoginRequest request) {
-        User user;
         String email = request.getEmail();
+        var user = userRepository.getOptionalByEmail(email).orElseThrow(
+                () -> new BusinessException("Invalid email or password"));
+
+        if (!user.isEnabled()) {
+            throw new BusinessException("Account must be enabled before login");
+        }
 
         try {
-            user = userRepository.getByEmail(email);
-
-            if (!user.isEnabled()) {
-                throw new BusinessException("Account must be enabled before login");
-            }
-
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
                             request.getPassword()
                     )
             );
-        } catch (EntityNotFoundException | AuthenticationException e) {
+        } catch (AuthenticationException e) {
             throw new BusinessException("Invalid email or password");
         }
 
@@ -148,23 +148,25 @@ public class AuthService {
     }
 
     public void sendPasswordResetEmail(EmailRequest request) {
-        String email = request.getEmail();
-        var user = userRepository.getByEmail(email);
+        var user = userRepository.getValidOptionalByEmail(request.getEmail());
+
+        if (user.isEmpty()) return;
+
         var token = UUID.randomUUID().toString();
-        var link = "http://localhost:4400/reset-password?resetToken=" + token;
+        var link = hostAndPort + "/reset-password?resetToken=" + token;
 
         var resetToken = UuidToken.builder()
                 .token(token)
                 .expiresAt(LocalDateTime.now().plusMinutes(expireTime))
-                .user(user)
+                .user(user.get())
                 .build();
 
         uuidTokenRepository.save(resetToken);
 
-        String name = user.getFirstName();
+        String name = user.get().getFirstName();
         String builtEmail = emailBuilder.forgotPasswordEmail(name, link);
 
-        emailService.send(email, builtEmail);
+        emailService.send(request.getEmail(), builtEmail);
     }
 
     @Transactional
