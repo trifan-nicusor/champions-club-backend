@@ -107,7 +107,7 @@ public class CartService {
         return ModelMapper.map(cart, CartView.class);
     }
 
-    private Cart getCartByUser(User user) {
+    public Cart getCartByUser(User user) {
         var cart = cartRepository.findByUser(user).orElseGet(() -> buildAndSaveCart(user));
 
         return refreshCart(cart);
