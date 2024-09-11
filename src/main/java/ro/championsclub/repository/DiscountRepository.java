@@ -17,7 +17,9 @@ public interface DiscountRepository extends JpaRepository<Discount, Integer> {
     boolean existsByCode(String name);
 
     Optional<Discount> findByNameAndIsActiveTrue(String name);
-    
+
+    Optional<Discount> findByCodeAndIsActiveTrue(String code);
+
     List<Discount> findAllByIsActiveTrue();
 
     List<Discount> findAllByIsActiveFalse();
@@ -32,6 +34,12 @@ public interface DiscountRepository extends JpaRepository<Discount, Integer> {
     default Discount getByName(String name) {
         return findByNameAndIsActiveTrue(name).orElseThrow(
                 () -> new EntityNotFoundException("Discount with name: " + name + " not found")
+        );
+    }
+
+    default Discount getByCode(String code) {
+        return findByCodeAndIsActiveTrue(code).orElseThrow(
+                () -> new EntityNotFoundException("Discount with code: " + code + " not found")
         );
     }
 
