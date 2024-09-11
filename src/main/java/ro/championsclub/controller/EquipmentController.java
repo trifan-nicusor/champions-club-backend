@@ -47,12 +47,10 @@ public class EquipmentController {
             )
     })
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(
-            consumes = {
-                    MediaType.MULTIPART_FORM_DATA_VALUE,
-                    MediaType.APPLICATION_JSON_VALUE
-            }
-    )
+    @PostMapping({
+            MediaType.MULTIPART_FORM_DATA_VALUE,
+            MediaType.APPLICATION_JSON_VALUE
+    })
     public void saveEquipment(
             @RequestPart MultipartFile image,
             @Valid @RequestPart EquipmentRequest request
@@ -89,12 +87,12 @@ public class EquipmentController {
                     MediaType.APPLICATION_JSON_VALUE
             }
     )
-    public EquipmentAdminView updateEquipment(
+    public void updateEquipment(
             @PathVariable String name,
             @Nullable @RequestPart MultipartFile image,
             @Valid @RequestPart EquipmentUpdateRequest request
     ) {
-        return service.updateEquipment(name, image, request);
+        service.updateEquipment(name, image, request);
     }
 
     @Operation(summary = "[only for admins] get all active equipments")
