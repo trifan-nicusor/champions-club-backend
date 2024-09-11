@@ -3,6 +3,7 @@ package ro.championsclub.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ro.championsclub.dto.response.CartView;
 import ro.championsclub.entity.Cart;
 import ro.championsclub.entity.Discount;
@@ -37,14 +38,11 @@ public class CartService {
     }
 
     @PreAuthorize("hasAuthority('USER')")
-    public void addSubscription(User user, String subName) {
-        var subscription = subscriptionRepository.getByName(subName);
+    public void addSubscription(User user, String name) {
+        var subscription = subscriptionRepository.getByName(name);
         var cart = getCartByUser(user);
 
-        if (cart.getProducts().isEmpty()) {
-            cart.getSubscriptions().add(subscription);
-            cart.setTotal(subscription.getPrice());
-        } else if (!cart.getSubscriptions().contains(subscription)) {
+        if (!cart.getSubscriptions().contains(subscription)) {
             var product = Product.builder()
                     .subscription(subscription)
                     .cart(cart)
@@ -56,9 +54,10 @@ public class CartService {
         cartRepository.save(cart);
     }
 
+    @Transactional
     @PreAuthorize("hasAuthority('USER')")
-    public CartView removeSubscription(User user, String subName) {
-        var subscription = subscriptionRepository.getByName(subName);
+    public CartView removeSubscription(User user, String name) {
+        var subscription = subscriptionRepository.getByName(name);
         var cart = getCartByUser(user);
 
         if (!cart.getProducts().isEmpty()) {
@@ -75,20 +74,27 @@ public class CartService {
         var cart = getCartByUser(user);
         var discount = discountRepository.getByCode(code);
 
-        Set<Discount> cartDiscounts = cart.getDiscounts();
+        Set<Discount> discounts = cart.getDiscounts();
+        BigDecimal minimumCartTotal = discount.getMinimumCartTotal();
 
-        if (discount.getMinimumCartTotal().compareTo(cart.getTotal()) > 0) {
-            throw new BusinessException("Cart total must be at least: " + discount.getMinimumCartTotal());
+        if (minimumCartTotal.compareTo(cart.getTotal()) > 0) {
+            throw new BusinessException("Cart total must be at least: " + minimumCartTotal);
         }
 
-        if (cartDiscounts.isEmpty()) {
+        if (discounts.isEmpty()) {
             cart.getDiscounts().add(discount);
-            cart.setDiscount(discountService.calculateDiscount(cartDiscounts, cart.getTotal()));
         } else if (!discount.getCompatibleWithOther()) {
             throw new BusinessException("Discount not compatible with other discounts");
+        } else if (discounts.size() == 1) {
+            var getDiscount = discounts.stream().findFirst().get();
+
+            if (!getDiscount.getCompatibleWithOther()) {
+                throw new BusinessException("Cart contains a discount incompatible with other discounts");
+            }
         }
 
         cart.getDiscounts().add(discount);
+        cartRepository.save(cart);
 
         refreshCart(cart);
 
