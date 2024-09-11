@@ -29,7 +29,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Inte
 
     default Subscription getByName(String name) {
         return findByNameAndIsActiveTrue(name).orElseThrow(
-                () -> new EntityNotFoundException("Subscription with name " + name + " not found"));
+                () -> new EntityNotFoundException("Subscription with name: " + name + " not found"));
     }
 
 }

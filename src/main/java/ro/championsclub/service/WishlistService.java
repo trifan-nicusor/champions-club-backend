@@ -10,6 +10,8 @@ import ro.championsclub.mapper.ModelMapper;
 import ro.championsclub.repository.SubscriptionRepository;
 import ro.championsclub.repository.WishlistRepository;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class WishlistService {
@@ -19,40 +21,32 @@ public class WishlistService {
 
     @PreAuthorize("hasAuthority('USER')")
     public WishlistView getMyWishlist(User user) {
-        var wishlist = user.getWishlist();
-
-        if (wishlist == null) {
-            wishlist = buildAndSaveWishlist(user);
-        }
+        var wishlist = Optional.ofNullable(user.getWishlist()).orElseGet(() -> buildAndSaveWishlist(user));
 
         return ModelMapper.map(wishlist, WishlistView.class);
     }
 
     @PreAuthorize("hasAuthority('USER')")
     public void addSubscription(User user, String subName) {
-        var wishlist = user.getWishlist();
         var subscription = subscriptionRepository.getByName(subName);
-
-        if (wishlist == null) {
-            wishlist = buildAndSaveWishlist(user);
-        }
+        var wishlist = Optional.ofNullable(user.getWishlist()).orElseGet(() -> buildAndSaveWishlist(user));
 
         wishlist.getSubscriptions().add(subscription);
+
         wishlistRepository.save(wishlist);
     }
 
 
     @PreAuthorize("hasAuthority('USER')")
     public void removeSubscriptions(User user, String subName) {
-        var wishlist = user.getWishlist();
-
-        if (wishlist == null) {
-            return;
-        }
-
         var subscription = subscriptionRepository.getByName(subName);
 
+        var wishlist = user.getWishlist();
+
+        if (wishlist == null) return;
+
         wishlist.getSubscriptions().remove(subscription);
+        
         wishlistRepository.save(wishlist);
     }
 
