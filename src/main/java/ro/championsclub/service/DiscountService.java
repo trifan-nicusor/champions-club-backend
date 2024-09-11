@@ -8,6 +8,7 @@ import ro.championsclub.dto.request.DiscountRequest;
 import ro.championsclub.dto.request.DiscountUpdateRequest;
 import ro.championsclub.dto.response.DiscountAdminView;
 import ro.championsclub.entity.Discount;
+import ro.championsclub.exception.BusinessException;
 import ro.championsclub.exception.ResourceConflictException;
 import ro.championsclub.mapper.ModelMapper;
 import ro.championsclub.repository.DiscountRepository;
@@ -27,7 +28,11 @@ public class DiscountService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public void saveDiscount(DiscountRequest request) {
         String name = request.getName();
-        String code = request.getCode();
+        String code = request.getCode().toUpperCase();
+
+        if (request.getValidFrom().isAfter(request.getValidTo())) {
+            throw new BusinessException("\"Valid from\" must before \"Valid to\" ");
+        }
 
         if (discountRepository.existsByName(name)) {
             throw new ResourceConflictException("Discount with name: " + name + " already exists");
@@ -51,13 +56,19 @@ public class DiscountService {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void deleteDiscount(String name) {
+    public void disableDiscount(String name) {
         discountRepository.disable(name);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     public void updateDiscount(String name, DiscountUpdateRequest request) {
+        if (request.getValidFrom().isAfter(request.getValidTo())) {
+            throw new BusinessException("\"Valid from\" must before \"Valid to\" ");
+        }
+
         var discount = discountRepository.getByName(name);
+
+        request.setCode(request.getCode().toUpperCase());
 
         ModelMapper.map(request, discount);
 

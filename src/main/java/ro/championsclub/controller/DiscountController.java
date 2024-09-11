@@ -33,7 +33,7 @@ public class DiscountController {
             @ApiResponse(responseCode = "201"),
             @ApiResponse(
                     responseCode = "409",
-                    description = "Another discount already saved with this name or code",
+                    description = "Another discount already saved with this name/code",
                     content = @Content(schema = @Schema(implementation = ErrorDto.class))
             )
     })
@@ -47,8 +47,8 @@ public class DiscountController {
     @ApiResponse(responseCode = "204")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{name}")
-    public void deleteDiscount(@PathVariable String name) {
-        service.deleteDiscount(name);
+    public void disableDiscount(@PathVariable String name) {
+        service.disableDiscount(name);
     }
 
     @Operation(summary = "[only for admins] update discount")
@@ -56,11 +56,11 @@ public class DiscountController {
             @ApiResponse(responseCode = "200"),
             @ApiResponse(
                     responseCode = "409",
-                    description = "Discount with this name or code already exists",
+                    description = "Another discount already saved with this name/code",
                     content = @Content(schema = @Schema(implementation = ErrorDto.class))
             )
     })
-    @PatchMapping("/update/{name}")
+    @PatchMapping("/{name}")
     public void updateDiscount(
             @PathVariable String name,
             @Valid @RequestBody DiscountUpdateRequest request
@@ -69,13 +69,13 @@ public class DiscountController {
     }
 
     @Operation(summary = "[only for admins] get all active discounts")
-    @GetMapping("/active-discounts")
+    @GetMapping("/admin/active")
     public List<DiscountAdminView> getAllActiveDiscounts() {
         return service.getAllActiveDiscounts();
     }
 
     @Operation(summary = "[only for admins] get all inactive subscriptions")
-    @GetMapping("/inactive-discounts")
+    @GetMapping("/admin/inactive")
     public List<DiscountAdminView> getAllInactiveDiscounts() {
         return service.getAllInactiveDiscounts();
     }
