@@ -134,10 +134,12 @@ class EquipmentServiceTest {
         var request = new EquipmentUpdateRequest();
         request.setName("Updated Equipment");
 
-        var equipmentAdminView = equipmentService.updateEquipment(name, null, request);
+        equipmentService.updateEquipment(name, null, request);
 
-        assertThat(equipmentAdminView).isNotNull();
-        assertThat(equipmentAdminView.getEquipmentName()).isEqualTo(request.getName());
+        var equipmentFromDb = equipmentRepository.getByName(name);
+
+        assertThat(equipmentFromDb).isNotNull();
+        assertThat(equipmentFromDb.getName()).isEqualTo(request.getName());
     }
 
     @Test

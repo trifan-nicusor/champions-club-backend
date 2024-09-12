@@ -1,12 +1,36 @@
+/*
 package ro.championsclub.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ro.championsclub.component.ConstraintValidator;
+import ro.championsclub.constant.EquipmentCategoryEnum;
+import ro.championsclub.dto.request.EquipmentRequest;
+import ro.championsclub.dto.request.EquipmentUpdateRequest;
+import ro.championsclub.dto.response.EquipmentAdminView;
+import ro.championsclub.service.AuthService;
+import ro.championsclub.service.EquipmentService;
+import ro.championsclub.service.JwtService;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest
 class EquipmentControllerTest {
-/*
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -91,9 +115,7 @@ class EquipmentControllerTest {
 
     @Test
     public void updateEquipmentTest() throws Exception {
-        */
-/*
-        * var request = new EquipmentRequest();
+        var request = new EquipmentRequest();
         request.setName("name");
         request.setCategory("FUNCTIONAL");
 
@@ -112,11 +134,9 @@ class EquipmentControllerTest {
                 MediaType.APPLICATION_JSON_VALUE,
                 requestJson.getBytes()
         );
-        * *//*
-
 
         // Mock the service behavior for a successful update
-        Mockito.when(equipmentService.updateEquipment(Mockito.anyInt(), Mockito.any(), Mockito.any(EquipmentUpdateRequest.class)))
+        when(equipmentService.updateEquipment(anyInt(), any(), any(EquipmentUpdateRequest.class)))
                 .thenReturn(updatedEquipment);
 
         // Convert EquipmentUpdateRequest to JSON
@@ -137,6 +157,6 @@ class EquipmentControllerTest {
                 .andExpect(jsonPath("$.name").value("Updated Excavator"))
                 .andExpect(jsonPath("$.category").value("Heavy Equipment"));
     }
-*/
 
 }
+*/
