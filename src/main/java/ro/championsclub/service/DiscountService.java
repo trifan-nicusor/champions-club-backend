@@ -8,6 +8,7 @@ import ro.championsclub.dto.request.DiscountRequest;
 import ro.championsclub.dto.request.DiscountUpdateRequest;
 import ro.championsclub.dto.response.DiscountAdminView;
 import ro.championsclub.entity.Discount;
+import ro.championsclub.exception.BusinessException;
 import ro.championsclub.exception.ResourceConflictException;
 import ro.championsclub.mapper.ModelMapper;
 import ro.championsclub.repository.DiscountRepository;
@@ -27,7 +28,11 @@ public class DiscountService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public void saveDiscount(DiscountRequest request) {
         String name = request.getName();
-        String code = request.getCode();
+        String code = request.getCode().toUpperCase();
+
+        if (request.getValidFrom().isAfter(request.getValidTo())) {
+            throw new BusinessException("\"Valid from\" must before \"Valid to\" ");
+        }
 
         if (discountRepository.existsByName(name)) {
             throw new ResourceConflictException("Discount with name: " + name + " already exists");
@@ -51,13 +56,19 @@ public class DiscountService {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void deleteDiscount(String name) {
+    public void disableDiscount(String name) {
         discountRepository.disable(name);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     public void updateDiscount(String name, DiscountUpdateRequest request) {
+        if (request.getValidFrom().isAfter(request.getValidTo())) {
+            throw new BusinessException("\"Valid from\" must before \"Valid to\" ");
+        }
+
         var discount = discountRepository.getByName(name);
+
+        request.setCode(request.getCode().toUpperCase());
 
         ModelMapper.map(request, discount);
 
@@ -81,14 +92,14 @@ public class DiscountService {
     public BigDecimal calculateDiscount(Set<Discount> discounts, BigDecimal total) {
         BigDecimal discount = BigDecimal.ZERO;
 
-        if (discounts.isEmpty() || total.compareTo(new BigDecimal(0)) == 0) {
+        if (discounts.isEmpty() || total.compareTo(BigDecimal.ZERO) == 0) {
             return discount;
         }
 
         Set<Discount> totalCartValueDiscounts = discountTypeFilter(discounts, DiscountTypeEnum.TOTAL_CART_VALUE);
         Set<Discount> percentageDiscounts = discountTypeFilter(discounts, DiscountTypeEnum.PERCENTAGE);
 
-        for (Discount disc : totalCartValueDiscounts) {
+        for (Discount disc : percentageDiscounts) {
             BigDecimal discountValue = BigDecimal.valueOf(disc.getValue());
             final BigDecimal oneHundred = BigDecimal.valueOf(100);
 
@@ -97,7 +108,7 @@ public class DiscountService {
             total = total.subtract(discount);
         }
 
-        for (Discount disc : percentageDiscounts) {
+        for (Discount disc : totalCartValueDiscounts) {
             BigDecimal discountValue = BigDecimal.valueOf(disc.getValue());
 
             discount = discount.add(discountValue);

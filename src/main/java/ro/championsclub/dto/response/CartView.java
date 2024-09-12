@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,7 +12,7 @@ public class CartView {
 
     private BigDecimal total;
     private BigDecimal discount;
-    private Set<ProductView> products;
-    private Set<DiscountView> discounts;
+    private List<SubscriptionView> subscriptions;
+    private List<DiscountView> discounts;
 
 }

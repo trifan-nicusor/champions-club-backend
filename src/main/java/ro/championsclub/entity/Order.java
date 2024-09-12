@@ -10,8 +10,8 @@ import ro.championsclub.constant.OrderStatusEnum;
 import ro.championsclub.constant.PaymentMethodEnum;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -70,7 +70,7 @@ public class Order {
             cascade = CascadeType.ALL,
             fetch = FetchType.EAGER
     )
-    private Set<OrderDiscount> orderDiscounts = new HashSet<>();
+    private List<OrderDiscount> orderDiscounts = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(
@@ -78,6 +78,6 @@ public class Order {
             cascade = CascadeType.ALL,
             fetch = FetchType.EAGER
     )
-    private Set<OrderProduct> orderProducts = new HashSet<>();
+    private List<OrderSubscriptions> orderSubscriptions = new ArrayList<>();
 
 }

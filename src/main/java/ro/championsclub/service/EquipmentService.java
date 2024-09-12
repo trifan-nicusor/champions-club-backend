@@ -12,12 +12,10 @@ import ro.championsclub.dto.response.EquipmentAdminView;
 import ro.championsclub.dto.response.EquipmentView;
 import ro.championsclub.entity.Equipment;
 import ro.championsclub.exception.ResourceConflictException;
+import ro.championsclub.mapper.ModelMapper;
 import ro.championsclub.repository.EquipmentRepository;
 
 import java.util.List;
-
-import static ro.championsclub.mapper.ModelMapper.map;
-import static ro.championsclub.mapper.ModelMapper.mapAll;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +51,7 @@ public class EquipmentService {
 
     @Transactional
     @PreAuthorize("hasAuthority('ADMIN')")
-    public EquipmentAdminView updateEquipment(
+    public void updateEquipment(
             String name,
             MultipartFile file,
             EquipmentUpdateRequest request
@@ -65,8 +63,10 @@ public class EquipmentService {
         var equipment = equipmentRepository.getByName(name);
 
         if (file != null && !file.isEmpty()) {
-            if (equipment.getImage().getName().equals(file.getOriginalFilename())) {
-                throw new ResourceConflictException("Image with name: " + file.getOriginalFilename() + " already exists");
+            String fileName = file.getOriginalFilename();
+
+            if (equipment.getImage().getName().equals(fileName)) {
+                throw new ResourceConflictException("Image with name: " + fileName + " already exists");
             }
 
             var image = imageService.updateImage(file, equipment.getImage());
@@ -74,31 +74,29 @@ public class EquipmentService {
             equipment.setImage(image);
         }
 
-        map(request, equipment);
+        ModelMapper.map(request, equipment);
 
         equipmentRepository.save(equipment);
-
-        return map(equipment, EquipmentAdminView.class);
     }
 
     public List<EquipmentView> getAllEquipments() {
         List<Equipment> equipments = equipmentRepository.findAllByIsActiveTrue();
 
-        return mapAll(equipments, EquipmentView.class);
+        return ModelMapper.mapAll(equipments, EquipmentView.class);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<EquipmentAdminView> getAllActiveEquipments() {
         List<Equipment> equipments = equipmentRepository.findAllByIsActiveTrue();
 
-        return mapAll(equipments, EquipmentAdminView.class);
+        return ModelMapper.mapAll(equipments, EquipmentAdminView.class);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<EquipmentAdminView> getAllInactiveEquipments() {
         List<Equipment> equipments = equipmentRepository.findAllByIsActiveFalse();
 
-        return mapAll(equipments, EquipmentAdminView.class);
+        return ModelMapper.mapAll(equipments, EquipmentAdminView.class);
     }
 
 }

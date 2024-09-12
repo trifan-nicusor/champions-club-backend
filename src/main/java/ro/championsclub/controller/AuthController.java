@@ -41,7 +41,7 @@ public class AuthController {
             ),
             @ApiResponse(
                     responseCode = "422",
-                    description = "Entity/DTO contains invalid fields",
+                    description = "Unable to process the request due to invalid fields",
                     content = @Content(schema = @Schema(implementation = ValidationDto.class))
             )
     })
@@ -68,11 +68,6 @@ public class AuthController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Successfully resent"
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "No user with this email found",
-                    content = @Content(schema = @Schema(implementation = ErrorDto.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -116,15 +111,7 @@ public class AuthController {
     public LoginResponse refreshToken(HttpServletRequest request) {
         return service.refreshToken(request);
     }
-
-    @ApiResponses({
-            @ApiResponse(responseCode = "200"),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "No user with this email found",
-                    content = @Content(schema = @Schema(implementation = ErrorDto.class))
-            )
-    })
+    
     @PostMapping("/forgot-password")
     public void forgotPassword(@Valid @RequestBody EmailRequest request) {
         service.sendPasswordResetEmail(request);

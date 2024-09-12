@@ -42,7 +42,7 @@ public class SubscriptionController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "Another equipment/image already saved with this name",
+                    description = "Subscription/image name already exists",
                     content = @Content(schema = @Schema(implementation = ErrorDto.class))
             )
     })
@@ -81,7 +81,7 @@ public class SubscriptionController {
             )
     })
     @PatchMapping(
-            path = "/update/{name}",
+            path = "/{name}",
             consumes = {
                     MediaType.MULTIPART_FORM_DATA_VALUE,
                     MediaType.APPLICATION_JSON_VALUE
@@ -102,13 +102,13 @@ public class SubscriptionController {
     }
 
     @Operation(summary = "[only for admins] get all active subscriptions")
-    @GetMapping("/active-subscriptions")
+    @GetMapping("/admin/active")
     public List<SubscriptionAdminView> getAllActiveEquipments() {
         return service.getAllActiveSubscriptions();
     }
 
     @Operation(summary = "[only for admins] get all inactive subscriptions")
-    @GetMapping("/inactive-subscriptions")
+    @GetMapping("/admin/inactive")
     public List<SubscriptionAdminView> getAllInactiveEquipments() {
         return service.getAllInactiveSubscriptions();
     }

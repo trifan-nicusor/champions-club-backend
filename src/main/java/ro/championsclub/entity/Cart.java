@@ -68,7 +68,7 @@ public class Cart {
             targetEntity = Subscription.class
     )
     @JoinTable(
-            name = "product",
+            name = "cart_subscription",
             joinColumns = @JoinColumn(name = "cart_id"),
             inverseJoinColumns = @JoinColumn(name = "subscription_id")
     )
@@ -91,18 +91,5 @@ public class Cart {
             inverseJoinColumns = @JoinColumn(name = "discount_id")
     )
     private Set<Discount> discounts = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(
-            mappedBy = "cart",
-            fetch = FetchType.EAGER,
-            cascade = {
-                    CascadeType.DETACH,
-                    CascadeType.MERGE,
-                    CascadeType.REFRESH,
-                    CascadeType.PERSIST
-            }
-    )
-    private Set<Product> products = new HashSet<>();
 
 }

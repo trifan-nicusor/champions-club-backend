@@ -14,7 +14,7 @@ public interface DiscountRepository extends JpaRepository<Discount, Integer> {
 
     boolean existsByName(String name);
 
-    boolean existsByCode(String name);
+    boolean existsByCode(String code);
 
     Optional<Discount> findByNameAndIsActiveTrue(String name);
 

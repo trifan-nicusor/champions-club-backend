@@ -3,16 +3,16 @@ package ro.championsclub.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ro.championsclub.dto.response.CartView;
 import ro.championsclub.entity.Cart;
 import ro.championsclub.entity.Discount;
-import ro.championsclub.entity.Product;
+import ro.championsclub.entity.Subscription;
 import ro.championsclub.entity.User;
 import ro.championsclub.exception.BusinessException;
 import ro.championsclub.mapper.ModelMapper;
 import ro.championsclub.repository.CartRepository;
 import ro.championsclub.repository.DiscountRepository;
-import ro.championsclub.repository.ProductRepository;
 import ro.championsclub.repository.SubscriptionRepository;
 
 import java.math.BigDecimal;
@@ -25,7 +25,6 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final SubscriptionRepository subscriptionRepository;
-    private final ProductRepository productRepository;
     private final DiscountService discountService;
     private final DiscountRepository discountRepository;
 
@@ -37,33 +36,22 @@ public class CartService {
     }
 
     @PreAuthorize("hasAuthority('USER')")
-    public void addSubscription(User user, String subName) {
-        var subscription = subscriptionRepository.getByName(subName);
+    public void addSubscription(User user, String name) {
+        var subscription = subscriptionRepository.getByName(name);
         var cart = getCartByUser(user);
 
-        if (cart.getProducts().isEmpty()) {
-            cart.getSubscriptions().add(subscription);
-            cart.setTotal(subscription.getPrice());
-        } else if (!cart.getSubscriptions().contains(subscription)) {
-            var product = Product.builder()
-                    .subscription(subscription)
-                    .cart(cart)
-                    .build();
-
-            cart.getProducts().add(product);
-        }
+        cart.getSubscriptions().add(subscription);
 
         cartRepository.save(cart);
     }
 
+    @Transactional
     @PreAuthorize("hasAuthority('USER')")
-    public CartView removeSubscription(User user, String subName) {
-        var subscription = subscriptionRepository.getByName(subName);
+    public CartView removeSubscription(User user, String name) {
+        var subscription = subscriptionRepository.getByName(name);
         var cart = getCartByUser(user);
 
-        if (!cart.getProducts().isEmpty()) {
-            productRepository.removeProduct(cart.getId(), subscription.getId());
-        }
+        cart.getSubscriptions().remove(subscription);
 
         refreshCart(cart);
 
@@ -75,20 +63,27 @@ public class CartService {
         var cart = getCartByUser(user);
         var discount = discountRepository.getByCode(code);
 
-        Set<Discount> cartDiscounts = cart.getDiscounts();
+        Set<Discount> discounts = cart.getDiscounts();
+        BigDecimal minimumCartTotal = discount.getMinimumCartTotal();
 
-        if (discount.getMinimumCartTotal().compareTo(cart.getTotal()) > 0) {
-            throw new BusinessException("Cart total must be at least: " + discount.getMinimumCartTotal());
+        if (minimumCartTotal.compareTo(cart.getTotal()) > 0) {
+            throw new BusinessException("Cart total must be at least: " + minimumCartTotal);
         }
 
-        if (cartDiscounts.isEmpty()) {
+        if (discounts.isEmpty()) {
             cart.getDiscounts().add(discount);
-            cart.setDiscount(discountService.calculateDiscount(cartDiscounts, cart.getTotal()));
         } else if (!discount.getCompatibleWithOther()) {
             throw new BusinessException("Discount not compatible with other discounts");
+        } else if (discounts.size() == 1) {
+            var getDiscount = discounts.stream().findFirst().get();
+
+            if (!getDiscount.getCompatibleWithOther()) {
+                throw new BusinessException("Cart contains a discount incompatible with other discounts");
+            }
         }
 
         cart.getDiscounts().add(discount);
+        cartRepository.save(cart);
 
         refreshCart(cart);
 
@@ -104,6 +99,8 @@ public class CartService {
 
         cartRepository.save(cart);
 
+        refreshCart(cart);
+
         return ModelMapper.map(cart, CartView.class);
     }
 
@@ -114,21 +111,29 @@ public class CartService {
     }
 
     private Cart refreshCart(Cart cart) {
+        if (cart.getSubscriptions().isEmpty()) {
+            cart.getDiscounts().clear();
+            cart.setTotal(BigDecimal.ZERO);
+            cart.setDiscount(BigDecimal.ZERO);
+
+            return cartRepository.save(cart);
+        }
+
         Set<Discount> discounts = cart.getDiscounts()
                 .stream()
                 .filter(discount -> discount.getMinimumCartTotal().compareTo(cart.getTotal()) < 0)
                 .collect(Collectors.toSet());
 
-        BigDecimal productTotal = cart.getProducts()
+        BigDecimal cartTotal = cart.getSubscriptions()
                 .stream()
-                .map(product -> product.getSubscription().getPrice())
+                .map(Subscription::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal discountTotal = discountService.calculateDiscount(discounts, productTotal);
+        BigDecimal discountTotal = discountService.calculateDiscount(discounts, cartTotal);
 
-        cart.setTotal(productTotal);
+        cart.setTotal(cartTotal);
         cart.setDiscount(discountTotal);
-        cart.setTotal(productTotal.subtract(discountTotal));
+        cart.setTotal(cartTotal.subtract(discountTotal));
         cart.setDiscounts(discounts);
 
         return cartRepository.save(cart);

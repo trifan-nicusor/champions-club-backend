@@ -52,18 +52,22 @@ public class SubscriptionService {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    public void updateSubscription(String name, MultipartFile file, SubscriptionUpdateRequest request) {
-        var requestName = request.getName();
-
-        if (name.equals(requestName)) {
+    public void updateSubscription(
+            String name,
+            MultipartFile file,
+            SubscriptionUpdateRequest request
+    ) {
+        if (name.equals(request.getName())) {
             throw new ResourceConflictException("Subscription with name: " + name + " already exists");
         }
 
         var subscription = subscriptionRepository.getByName(name);
 
         if (file != null && !file.isEmpty()) {
-            if (subscription.getImage().getName().equals(file.getOriginalFilename())) {
-                throw new ResourceConflictException("Image with name: " + file.getOriginalFilename() + " already exists");
+            String fileName = file.getOriginalFilename();
+
+            if (subscription.getImage().getName().equals(fileName)) {
+                throw new ResourceConflictException("Image with name: " + fileName + " already exists");
             }
 
             var image = imageService.saveImage(file);
