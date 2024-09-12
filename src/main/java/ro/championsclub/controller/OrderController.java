@@ -7,7 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ro.championsclub.dto.response.OrderResponse;
+import ro.championsclub.dto.response.OrderView;
 import ro.championsclub.entity.User;
 import ro.championsclub.service.OrderService;
 
@@ -23,7 +23,7 @@ public class OrderController {
 
     @Operation(summary = "[only for users] get my orders")
     @GetMapping
-    public List<OrderResponse> getMyOrders(@AuthenticationPrincipal User user) {
+    public List<OrderView> getMyOrders(@AuthenticationPrincipal User user) {
         return service.getMyOrders(user);
     }
 

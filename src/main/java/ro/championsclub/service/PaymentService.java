@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import ro.championsclub.entity.Cart;
-import ro.championsclub.entity.Subscription;
 import ro.championsclub.entity.User;
 import ro.championsclub.exception.BusinessException;
 import ro.championsclub.exception.TechnicalException;
@@ -46,35 +45,32 @@ public class PaymentService {
         List<SessionCreateParams.LineItem> lineItems = new ArrayList<>();
         Cart cart = cartService.getCartByUser(user);
 
-        if (cart.getProducts().isEmpty()) {
+        if (cart.getSubscriptions().isEmpty()) {
             throw new BusinessException("Cart must contain at least one product");
         }
 
         var oneHundred = BigDecimal.valueOf(100);
-        var discount = cart.getDiscount().divide(BigDecimal.valueOf(cart.getProducts().size()), RoundingMode.CEILING);
+        var discount = cart.getDiscount().divide(BigDecimal.valueOf(cart.getSubscriptions().size()), RoundingMode.CEILING);
 
-        cart.getProducts().forEach(product -> {
-                    Subscription subscription = product.getSubscription();
-
-                    lineItems.add(
-                            SessionCreateParams.LineItem.builder()
-                                    .setQuantity(1L)
-                                    .setPriceData(
-                                            SessionCreateParams.LineItem.PriceData.builder()
-                                                    .setCurrency("ron")
-                                                    .setUnitAmountDecimal(subscription.getPrice().subtract(discount).multiply(oneHundred))
-                                                    .setProductData(
-                                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                    .setName(subscription.getName())
-                                                                    .build()
-                                                    ).build()
-                                    ).build());
-                }
+        cart.getSubscriptions().forEach(subscription -> lineItems.add(
+                SessionCreateParams.LineItem.builder()
+                        .setQuantity(1L)
+                        .setPriceData(
+                                SessionCreateParams.LineItem.PriceData.builder()
+                                        .setCurrency("ron")
+                                        .setUnitAmountDecimal(subscription.getPrice().subtract(discount).multiply(oneHundred))
+                                        .setProductData(
+                                                SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                        .setName(subscription.getName())
+                                                        .build()
+                                        ).build()
+                        ).build())
         );
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl("http://localhost:8080")
                 .setPaymentIntentData(
                         SessionCreateParams.PaymentIntentData.builder()
                                 .putMetadata("email", user.getEmail())

@@ -92,14 +92,14 @@ public class DiscountService {
     public BigDecimal calculateDiscount(Set<Discount> discounts, BigDecimal total) {
         BigDecimal discount = BigDecimal.ZERO;
 
-        if (discounts.isEmpty() || total.compareTo(new BigDecimal(0)) == 0) {
+        if (discounts.isEmpty() || total.compareTo(BigDecimal.ZERO) == 0) {
             return discount;
         }
 
         Set<Discount> totalCartValueDiscounts = discountTypeFilter(discounts, DiscountTypeEnum.TOTAL_CART_VALUE);
         Set<Discount> percentageDiscounts = discountTypeFilter(discounts, DiscountTypeEnum.PERCENTAGE);
 
-        for (Discount disc : totalCartValueDiscounts) {
+        for (Discount disc : percentageDiscounts) {
             BigDecimal discountValue = BigDecimal.valueOf(disc.getValue());
             final BigDecimal oneHundred = BigDecimal.valueOf(100);
 
@@ -108,7 +108,7 @@ public class DiscountService {
             total = total.subtract(discount);
         }
 
-        for (Discount disc : percentageDiscounts) {
+        for (Discount disc : totalCartValueDiscounts) {
             BigDecimal discountValue = BigDecimal.valueOf(disc.getValue());
 
             discount = discount.add(discountValue);

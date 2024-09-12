@@ -2,10 +2,9 @@ package ro.championsclub.mapper;
 
 import org.modelmapper.Conditions;
 import org.modelmapper.convention.MatchingStrategies;
-import ro.championsclub.mapper.map.EquipmentAdminMap;
-import ro.championsclub.mapper.map.EquipmentMap;
-import ro.championsclub.mapper.map.SubscriptionAdminMap;
-import ro.championsclub.mapper.map.SubscriptionMap;
+import ro.championsclub.dto.response.OrderView;
+import ro.championsclub.entity.Order;
+import ro.championsclub.mapper.map.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,6 +27,12 @@ public class ModelMapper {
         modelMapper.addMappings(new EquipmentMap());
         modelMapper.addMappings(new SubscriptionMap());
         modelMapper.addMappings(new SubscriptionAdminMap());
+        modelMapper.addMappings(new OrderSubscriptionMap());
+
+        modelMapper.typeMap(Order.class, OrderView.class).addMappings(mapper -> {
+            mapper.map(Order::getOrderSubscriptions, OrderView::setSubscriptions);
+            mapper.map(Order::getOrderDiscounts, OrderView::setDiscounts);
+        });
     }
 
     private ModelMapper() {
