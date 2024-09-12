@@ -30,6 +30,7 @@ public class ConstraintValidatorTest {
     @Test
     public void buildErrorsTest() {
         var fieldError = new FieldError("name", "field", "must not be blank");
+
         when(mockBindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
 
         List<ValidationDto> result = constraintValidator.buildErrors(mockBindingResult);
