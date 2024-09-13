@@ -147,7 +147,7 @@ class UserRepositoryTest {
 
     @Test
     void getUnconfirmedUser() {
-        Throwable thrown = catchThrowable(() -> userRepository.getUnconfirmedUser("random"));
+        Throwable thrown = catchThrowable(() -> userRepository.getByEmail(disabledUser.getEmail()));
 
         assertThat(thrown).isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("No user with this email found");

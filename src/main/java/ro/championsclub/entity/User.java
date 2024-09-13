@@ -109,7 +109,7 @@ public class User implements UserDetails {
     )
     private Wishlist wishlist;
 
-    // UserDetails interface method override
+    // UserDetails interface methods override
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

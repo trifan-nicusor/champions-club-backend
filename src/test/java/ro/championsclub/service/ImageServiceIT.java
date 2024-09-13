@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
 @SpringBootTest
-class ImageServiceTest {
+class ImageServiceIT {
 
     @Autowired
     private ImageService imageService;

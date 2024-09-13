@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
-class EquipmentServiceTest {
+class EquipmentServiceIT {
 
     @Autowired
     private EquipmentService equipmentService;
@@ -132,12 +132,14 @@ class EquipmentServiceTest {
         equipmentRepository.save(equipment);
 
         var request = new EquipmentUpdateRequest();
-        request.setName("Updated Equipment");
+        request.setName("update test");
 
-        var equipmentAdminView = equipmentService.updateEquipment(name, null, request);
+        equipmentService.updateEquipment(name, null, request);
 
-        assertThat(equipmentAdminView).isNotNull();
-        assertThat(equipmentAdminView.getEquipmentName()).isEqualTo(request.getName());
+        var equipmentFromDb = equipmentRepository.getByName(request.getName());
+
+        assertThat(equipmentFromDb).isNotNull();
+        assertThat(equipmentFromDb.getName()).isEqualTo(request.getName());
     }
 
     @Test

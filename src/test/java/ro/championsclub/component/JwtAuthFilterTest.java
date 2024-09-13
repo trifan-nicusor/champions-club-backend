@@ -56,7 +56,7 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    void doFilterInternal_noAuthHeaderTest() throws ServletException, IOException {
+    void doFilterInternalNoAuthHeaderTest() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(null);
 
         jwtAuthFilter.doFilterInternal(request, response, filterChain);
@@ -68,7 +68,7 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    void doFilterInternal_invalidAuthHeaderTest() throws ServletException, IOException {
+    void doFilterInternalInvalidAuthHeaderTest() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn("invalid_header");
 
         jwtAuthFilter.doFilterInternal(request, response, filterChain);
@@ -80,7 +80,7 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    void doFilterInternal_validToken_authenticationSetTest() throws ServletException, IOException {
+    void doFilterInternalValidTokenAuthenticationSetTest() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn("Bearer " + jwt);
         when(jwtService.extractUsername(jwt)).thenReturn(email);
         when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
@@ -103,7 +103,7 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    void doFilterInternal_validToken_invalidAuthenticationTest() throws ServletException, IOException {
+    void doFilterInternalValidTokenInvalidAuthenticationTest() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn("Bearer " + jwt);
         when(jwtService.extractUsername(jwt)).thenReturn(email);
         when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);

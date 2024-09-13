@@ -48,7 +48,6 @@ public class ModelMapper {
     }
 
     public static <D, T> List<D> mapAll(final Collection<T> sources, Class<D> target) {
-
         return sources.stream()
                 .map(entity -> map(entity, target))
                 .collect(Collectors.toList());

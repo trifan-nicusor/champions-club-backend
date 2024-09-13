@@ -11,26 +11,26 @@ public class ValidationDtoTest {
 
     @Test
     public void validationDtoWithFieldAndErrorTest() {
-        String field = "email";
-        String error = "must not be empty";
+        var field = "email";
+        var message = "must not be empty";
 
-        ValidationDto validationDto = new ValidationDto(field, error);
+        var validationDto = new ValidationDto(field, message);
 
         assertThat(field).isEqualTo(validationDto.field());
-        assertThat(error).isEqualTo(validationDto.message());
+        assertThat(message).isEqualTo(validationDto.message());
         assertThat(validationDto.timestamp()).isNotNull();
 
-        LocalDateTime parsedTimestamp = LocalDateTime.parse(validationDto.timestamp(), TimestampPattern.FORMATTER);
+        var parsedTimestamp = LocalDateTime.parse(validationDto.timestamp(), TimestampPattern.FORMATTER);
         assertThat(parsedTimestamp).isNotNull();
     }
 
     @Test
     public void validationDtoWithFieldErrorAndTimestampTest() {
-        String field = "email";
-        String error = "invalid format";
-        String timestamp = "2024-09-04T10:15:30";
+        var field = "email";
+        var error = "invalid format";
+        var timestamp = "2024-09-04T10:15:30";
 
-        ValidationDto validationDto = new ValidationDto(field, error, timestamp);
+        var validationDto = new ValidationDto(field, error, timestamp);
 
         assertThat(field).isEqualTo(validationDto.field());
         assertThat(error).isEqualTo(validationDto.message());
