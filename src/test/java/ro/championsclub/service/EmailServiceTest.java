@@ -31,7 +31,7 @@ public class EmailServiceTest {
     @BeforeEach
     public void setup() {
         mimeMessage = Mockito.mock(MimeMessage.class);
-        Mockito.when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
     }
 
     @Test
@@ -53,5 +53,5 @@ public class EmailServiceTest {
 
         assertThrows(TechnicalException.class, () -> emailService.send(to, email));
     }
-    
+
 }

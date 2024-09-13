@@ -34,7 +34,7 @@ class AuthConfigTest {
     }
 
     @Test
-    void authenticationManager_shouldReturnAuthenticationManager() throws Exception {
+    void authenticationManagerShouldReturnAuthenticationManager() throws Exception {
         AuthenticationManager mockAuthManager = mock(AuthenticationManager.class);
         when(authenticationConfiguration.getAuthenticationManager()).thenReturn(mockAuthManager);
 
@@ -45,7 +45,7 @@ class AuthConfigTest {
     }
 
     @Test
-    void passwordEncoder_shouldReturnBCryptPasswordEncoder() {
+    void passwordEncoderShouldReturnBCryptPasswordEncoder() {
         PasswordEncoder passwordEncoder = authConfig.passwordEncoder();
 
         assertThat(passwordEncoder).isNotNull();

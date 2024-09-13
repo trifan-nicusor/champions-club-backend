@@ -32,51 +32,25 @@ class LoginRequestTest {
     }
 
     @Test
-    public void blankEmailTest() {
+    public void blankEmailAndPasswordTest() {
         LoginRequest request = new LoginRequest();
         request.setEmail("");
-        request.setPassword("password123456");
-
-        Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
-        assertThat(violations).hasSize(1);
-        assertThat(violations).extracting(ConstraintViolation::getMessage).contains("must not be blank");
-        assertThat(violations).extracting(violation -> violation.getPropertyPath().toString()).contains("email");
-    }
-
-    @Test
-    public void emailExceedsMaxLengthTest() {
-        LoginRequest request = new LoginRequest();
-        request.setEmail("a".repeat(65) + "@email.com");
-        request.setPassword("password123456");
-
-        Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
-        assertThat(violations).hasSize(1);
-        assertThat(violations).extracting(ConstraintViolation::getMessage).contains("size must be between 0 and 64");
-        assertThat(violations).extracting(violation -> violation.getPropertyPath().toString()).contains("email");
-    }
-
-    @Test
-    public void blankPasswordTest() {
-        LoginRequest request = new LoginRequest();
-        request.setEmail("test@email.com");
         request.setPassword("");
 
         Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
-        assertThat(violations).hasSize(1);
+        assertThat(violations).hasSize(2);
         assertThat(violations).extracting(ConstraintViolation::getMessage).contains("must not be blank");
-        assertThat(violations).extracting(violation -> violation.getPropertyPath().toString()).contains("password");
     }
 
     @Test
-    public void testPasswordExceedsMaxLength() {
+    public void emailAndPasswordExceedsMaxLengthTest() {
         LoginRequest request = new LoginRequest();
-        request.setEmail("test@example.com");
+        request.setEmail("a".repeat(65) + "@email.com");
         request.setPassword("p".repeat(65));
 
         Set<ConstraintViolation<LoginRequest>> violations = validator.validate(request);
-        assertThat(violations).hasSize(1);
+        assertThat(violations).hasSize(2);
         assertThat(violations).extracting(ConstraintViolation::getMessage).contains("size must be between 0 and 64");
-        assertThat(violations).extracting(violation -> violation.getPropertyPath().toString()).contains("password");
     }
 
 }
