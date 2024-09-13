@@ -46,7 +46,7 @@ public class PaymentService {
         Cart cart = cartService.getCartByUser(user);
 
         if (cart.getSubscriptions().isEmpty()) {
-            throw new BusinessException("Cart must contain at least one product");
+            throw new BusinessException("Cart must contain at least one subscription");
         }
 
         var oneHundred = BigDecimal.valueOf(100);

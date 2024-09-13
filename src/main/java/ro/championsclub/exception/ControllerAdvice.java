@@ -52,16 +52,12 @@ public class ControllerAdvice {
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public List<ValidationDto> handle(MethodArgumentNotValidException e) {
-        log.error("invalid method arguments: {}", e.getMessage());
-
         return constraintValidator.buildErrors(e.getBindingResult());
     }
 
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(ConstraintViolationException.class)
     public List<ValidationDto> handle(ConstraintViolationException e) {
-        log.error("constraint validation failed: {}", e.getMessage());
-
         return constraintValidator.buildErrors(e.getConstraintViolations());
     }
 

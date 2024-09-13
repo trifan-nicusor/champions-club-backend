@@ -33,6 +33,6 @@ public class DiscountUpdateRequest {
 
     private LocalDate validFrom;
     private LocalDate validTo;
-    private Boolean compatibleWithOther;
+    private boolean compatibleWithOther;
 
 }
