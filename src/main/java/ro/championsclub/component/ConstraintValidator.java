@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static java.util.stream.Collectors.toList;
-
 @Component
 public class ConstraintValidator {
 
@@ -25,7 +23,7 @@ public class ConstraintValidator {
                                         .orElse(null)
                         ).toString(),
                         violation.getMessage()
-                )).collect(toList());
+                )).collect(Collectors.toList());
     }
 
     public List<ValidationDto> buildErrors(BindingResult bindingResult) {
